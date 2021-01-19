@@ -12,6 +12,8 @@ const urlDatabase = {
 
 ///route handlers
 
+
+
 app.get("/hello", (req, res) => {
   const templateVars = { greeting: 'Hello World!' };
   res.render("hello_world", templateVars);
@@ -31,7 +33,7 @@ app.get("/urls", (req, res) => {
 ///shows a single shorthened_url and its url equivalent
 app.get("/urls/:shortURL", (req, res) => {
   
-  /////here is important to know that you can set pass ANY expression to look for an element in an object.///
+  /////here is important to know that you can set pass ANY expression to look for an element in an object.//
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
 });

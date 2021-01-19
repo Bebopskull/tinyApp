@@ -1,4 +1,4 @@
-/////this EJS will display the ursl in shorthened form////
+<!--/////this EJS will display the ursl in shorthened form////-->
 
 <!DOCTYPE html>
 <html lang="en">
@@ -11,6 +11,7 @@
   <title>TinyApp</title>
 </head>
 <body>
+  <%- include('partials/_header') %>
   <main style="margin: 1em;">
     <h3>My URLs</h3>
     <table class="table">
@@ -20,6 +21,7 @@
           <th scope="col">Long URL</th>
         </tr>
       </thead>
+      
       <tbody>
         <% for(let url in urls) { %>
           <tr>
