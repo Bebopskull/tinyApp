@@ -18,7 +18,7 @@ let generateRandomString = function makeid(length = 6) {
   return result;
 }
 
-// console.log(makeid(5));
+
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -78,7 +78,25 @@ app.get("/fetch", (req, res) => {
 /////submit new url
 app.post("/urls", (req, res) => {
   console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  ///generate random key
+  let shortURL = generateRandomString(6);
+  ////asign the random value to the req body.
+  urlDatabase[shortURL] = req.body.longURL;
+
+  ///lets send the user to a new link with their newly generated shortURL
+
+  const templateVars = { shortURL: [shortURL], longURL: req.body.longURL};
+  res.redirect(`/urls/${shortURL}`);
+  console.log(urlDatabase)
+});
+
+///redirects to longURL////
+app.get("/u/:shortURL", (req, res) => {
+  // const longURL = ...
+  console.log(req.body);
+  const longURL = req.body;
+
+  res.redirect(longURL);
 });
 
 
