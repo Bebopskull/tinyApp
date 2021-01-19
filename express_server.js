@@ -58,6 +58,8 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 
+
+
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
@@ -86,8 +88,16 @@ app.post("/urls", (req, res) => {
   ///lets send the user to a new link with their newly generated shortURL
   const templateVars = { shortURL: [shortURL], longURL: req.body.longURL};
   res.redirect(`/urls/${shortURL}`);
-  console.log(urlDatabase)
+  
 });
+
+app.post('/urls/:shortURL',(req, res) => {
+  console.log(req.body)
+  urlDatabase[req.params.shortURL] = req.body.editedURL;
+  console.log(req.body)
+  res.redirect(`/urls`);
+})
+
 
 ///redirects to longURL////
 app.get("/u/:shortURL", (req, res) => {
