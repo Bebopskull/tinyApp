@@ -84,7 +84,6 @@ app.post("/urls", (req, res) => {
   urlDatabase[shortURL] = req.body.longURL;
 
   ///lets send the user to a new link with their newly generated shortURL
-
   const templateVars = { shortURL: [shortURL], longURL: req.body.longURL};
   res.redirect(`/urls/${shortURL}`);
   console.log(urlDatabase)
@@ -97,6 +96,16 @@ app.get("/u/:shortURL", (req, res) => {
   const longURL = req.body;
 
   res.redirect(longURL);
+});
+
+
+// DELETE /MEMES/:id 
+// POST /memes/:id/delete
+// post requests are used to CHANGE/DELETE/UPDATE/CREATE data 
+app.post( '/urls/:shortURL/delete', (req, res)=>{
+  const urlToDelete = req.params.shortURL;
+  delete urlDatabase[urlToDelete];
+  res.redirect('/urls');
 });
 
 
