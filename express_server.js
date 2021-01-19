@@ -1,3 +1,4 @@
+const { response } = require("express");
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
@@ -15,15 +16,24 @@ app.get("/hello", (req, res) => {
   const templateVars = { greeting: 'Hello World!' };
   res.render("hello_world", templateVars);
 });
-
+///gets the urls in JSON format
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+// gets the urls and display them in html format
 app.get("/urls", (req, res) => {
   // res.render('/views/url_index.ejs');// BAD
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
+});
+
+///shows a single shorthened_url and its url equivalent
+app.get("/urls/:shortURL", (req, res) => {
+  
+  /////here is important to know that you can set pass ANY expression to look for an element in an object.///
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  res.render("urls_show", templateVars);
 });
 
 app.get("/hello", (req, res) => {
