@@ -3,9 +3,11 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser');
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser())
 
 ///generate random string
 let generateRandomString = function makeid(length = 6) {
@@ -29,7 +31,7 @@ const urlDatabase = {
 ///ROUTE HANDLERS///
 
 app.get("/hello", (req, res) => {
-  const templateVars = { greeting: 'Hello World!' };
+  const templateVars = { greeting: 'Hello World!', username: req.cookies["username"] };
   res.render("hello_world", templateVars);
 });
 ///gets the urls in JSON format
@@ -37,28 +39,51 @@ app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
 });
 
+////LOGIN///
+
+app.post('/logIn',(req, res)=>{
+
+  res.cookie("username", req.body.username);
+  // console.log(req.cookies);
+  res.redirect(`/urls`);
+})
+
+///LOGOUT///
+app.post('/logOut',(req, res)=>{
+  // res.cookie("username", req.body.username);
+  res.clearCookie('username');
+  res.redirect(`/urls`);
+})
+
 // gets the urls and display them in html format
 app.get("/urls", (req, res) => {
   // res.render('/views/url_index.ejs');// BAD
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { 
+    urls: urlDatabase,
+    username: req.cookies["username"],
+   };
   res.render("urls_index", templateVars);
 });
 
 /////route to the 'input new url page'///
 app.get("/urls/new", (req, res) => {
-  res.render("urls_new");
+  const templateVars = { 
+    urls: urlDatabase,
+    username: req.cookies["username"],
+   };
+  res.render("urls_new", templateVars);
 });
 
 ///shows a single shorthened_url and its url equivalent
 app.get("/urls/:shortURL", (req, res) => {
   
   /////here is important to know that you can set pass ANY expression to look for an element in an object.//
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  const templateVars = { 
+    shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],
+    username: req.cookies["username"]
+  };
   res.render("urls_show", templateVars);
 });
-
-
-
 
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
@@ -91,7 +116,7 @@ app.post("/urls", (req, res) => {
   
 });
 
-app.post('/urls/:shortURL',(req, res) => {
+app.post('/urls/:shortURL/:kljk',(req, res) => {
   console.log(req.body)
   urlDatabase[req.params.shortURL] = req.body.editedURL;
   console.log(req.body)
@@ -109,8 +134,8 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 
-// DELETE /MEMES/:id 
-// POST /memes/:id/delete
+// DELETE /URLS/:url 
+// POST /URLS/:url/delete
 // post requests are used to CHANGE/DELETE/UPDATE/CREATE data 
 app.post( '/urls/:shortURL/delete', (req, res)=>{
   const urlToDelete = req.params.shortURL;
