@@ -5,6 +5,7 @@ const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
+const bcrypt = require('bcrypt');
 
 ////users database and user class imports.
 const { users } = require('./usersDb');
@@ -17,6 +18,7 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 app.use(morgan('dev'));
+// app.use(bcrypt());
 
 ///generate random string
 let generateRandomString = function makeid(length = 6) {
@@ -135,6 +137,7 @@ app.post('/signUp',(req, res) => {
     res.redirect('signUp');
   }
   ///seting up the userobject name by its email
+  console.log(req.body)
   let userMail = req.body.email;
   ///veryfing that the user don't exist already.
   if (emailExists(users, userMail)) {
@@ -145,16 +148,20 @@ app.post('/signUp',(req, res) => {
   } else {
      ///generate random user ID
     let userID = generateRandomString(5);
+
+    ////lets hash the password
+    const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+
     ///declaring the newuser as an instance of the User class. 
-    let newUser = new User(userID, req.body.email, req.body.password);
+    let newUser = new User(userID, req.body.email, hashedPassword);//req.body.password
 
     ///adding the newUser to the users database;
     users[userID] = newUser;
     
     ///place newuser in a cookie, also.
-    // res.cookie('user_id', newUser.id);
+    res.cookie('user_id', newUser.id);
     
-    console.log(req.cookies);
+    // console.log(req.cookies);
     
     res.redirect('/urls');
   };
