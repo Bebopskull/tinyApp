@@ -18,6 +18,11 @@ const users = {
     id: "user2RandomID", 
     email: "user2@example.com", 
     password: "dishwasher-funk"
+  },
+  "superUser": {
+    id: "superUser", 
+    email: "a@b.c", 
+    password: "sdsd"
   }
 
 }

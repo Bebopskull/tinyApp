@@ -79,7 +79,10 @@ app.post('/logIn',(req, res)=>{
 })
 
 app.get('/login',(req, res)=>{
+
+
   const templateVars = { 
+    
     urls: urlDatabase,
     user: users[req.cookies["user_id"]],
    };
@@ -98,11 +101,16 @@ app.post('/logOut',(req, res)=>{
 // gets the urls and display them in html format
 app.get("/urls", (req, res) => {
   // res.render('/views/url_index.ejs');// BAD
+  // console.log(req.cookies)
+
+  ///define a new filtered newdatabase/////
+  
   const templateVars = { 
     urls: urlDatabase,
     user: users[req.cookies["user_id"]],
+    userID: req.cookies["user_id"],
   };
-  console.log(users);
+  console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
@@ -174,39 +182,25 @@ app.get("/urls/:shortURL", (req, res) => {
   /////here is important to know that you can set pass ANY expression to look for an element in an object.//
   const templateVars = { 
     shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL],
+    longURL: urlDatabase[req.params.shortURL]["longURL"],
     user: users[req.cookies["user_id"]],
   };
   res.render("urls_show", templateVars);
 });
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
-
-
-app.get("/set", (req, res) => {
-  const a = 1;
-  res.send(`a = ${a}`);
-});
- 
-app.get("/fetch", (req, res) => {
-  res.send(`a = ${a}`);
-});
-
-
 /////posts///// 
 
 /////submit new url
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
+  // console.log(req.body);  // Log the POST request body to the console
   ///generate random key
+  // console.log("req.cookies", req.cookies);
   let shortURL = generateRandomString(6);
   ////asign the random value to the req body.
-  urlDatabase[shortURL] = req.body.longURL;
+  urlDatabase[shortURL] = {'longURL' : req.body.longURL, 'userID': req.cookies["user_id"]};
 
   ///lets send the user to a new link with their newly generated shortURL
-  const templateVars = { shortURL: [shortURL], longURL: req.body.longURL};
+  // const templateVars = { shortURL: [shortURL].longURL, longURL: req.body.longURL};
 
   res.redirect(`/urls/${shortURL}`);
   
@@ -218,9 +212,9 @@ app.post("/urls", (req, res) => {
 ///redirects to longURL////
 app.get("/u/:shortURL", (req, res) => {
   // const longURL = ...
-  console.log(req.body);
-  const longURL = req.body;
-  res.redirect(longURL);
+  console.log(urlDatabase);
+  const extURL = urlDatabase[req.params.shortURL].longURL;
+  res.redirect(extURL);
 });
 
 
@@ -228,17 +222,20 @@ app.get("/u/:shortURL", (req, res) => {
 // POST /URLS/:url/delete
 // post requests are used to CHANGE/DELETE/UPDATE/CREATE data 
 app.post( '/urls/:shortURL/delete', (req, res)=>{
-  const urlToDelete = req.params.shortURL;
-  delete urlDatabase[urlToDelete];
-  res.redirect('/urls');
+  let id = req.cookies.user_id;
+  if(id){
+    const urlToDelete = req.params.shortURL;
+    delete urlDatabase[urlToDelete];
+    res.redirect('/urls');
+    return
+  }
+  res.sendStatus(403), res.redirect('login')
 });
 
 
 ///phantom////
 app.post('/urls/:shortURL',(req, res) => {
-    console.log(req.body)
     urlDatabase[req.params.shortURL] = req.body.editedURL;
-    console.log(req.body)
     res.redirect(`/urls`);
 })
 
