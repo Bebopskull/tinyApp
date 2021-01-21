@@ -20,8 +20,9 @@ const passwordMatching = (userDatabase, email, password) => {
 
 const fetchUser = (userDatabase, email) => {
   for(let user in userDatabase){
-    if (userDatabase[email]) {
-      return userDatabase[email]
+    if (userDatabase[user].email===email) {
+      // console.log(userDatabase[email)
+      return user;
     } 
   }
   return {}
