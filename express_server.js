@@ -53,10 +53,35 @@ app.get("/urls.json", (req, res) => {
 
 ////LOGIN///
 
+
 app.post('/logIn',(req, res)=>{
-  // res.cookie("username", req.body.username);
+  //lookup for the email submited in the users object
+  if (emailExists(users, req.body.email )) {
+    console.log('User recognized...' + req.body.email );
+    if (passwordMatching(users, req.body.email, req.body.password)) {
+      console.log('Password Accepted...')
+      let user_id = fetchUser(users, req.body.email).id;
+      res.cookie('user_id', user_id)
+      console.log(req.cookies);
+    }else{
+      res.sendStatus(403);
+    }
+    res.redirect('/urls');
+    return
+  }
+  res.sendStatus(403);
   // console.log(req.cookies);
   res.redirect(`/urls`);
+})
+
+app.get('/login',(req, res)=>{
+  const templateVars = { 
+    urls: urlDatabase,
+    user: users[req.cookies["user"]],
+   };
+  
+ 
+  res.render(`login`, templateVars);
 })
 
 ///LOGOUT///
@@ -185,7 +210,6 @@ app.get("/u/:shortURL", (req, res) => {
   // const longURL = ...
   console.log(req.body);
   const longURL = req.body;
-
   res.redirect(longURL);
 });
 
@@ -194,7 +218,6 @@ app.get("/u/:shortURL", (req, res) => {
 // POST /URLS/:url/delete
 // post requests are used to CHANGE/DELETE/UPDATE/CREATE data 
 app.post( '/urls/:shortURL/delete', (req, res)=>{
-  console.log('hello');
   const urlToDelete = req.params.shortURL;
   delete urlDatabase[urlToDelete];
   res.redirect('/urls');
@@ -204,7 +227,6 @@ app.post( '/urls/:shortURL/delete', (req, res)=>{
 ///phantom////
 app.post('/urls/:shortURL',(req, res) => {
     console.log(req.body)
-    console.log('hello');
     urlDatabase[req.params.shortURL] = req.body.editedURL;
     console.log(req.body)
     res.redirect(`/urls`);
