@@ -4,10 +4,19 @@ const app = express();
 const PORT = 8080; // default port 8080
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
+const morgan = require('morgan');
+
+////users database and user class imports.
+const { users } = require('./usersDb');
+const { User } = require('./usersDb')
+
+////helper import
+const { emailExists, passwordMatching, fetchUser } = require('./helpers');
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser())
+app.use(cookieParser());
+app.use(morgan('dev'));
 
 ///generate random string
 let generateRandomString = function makeid(length = 6) {
@@ -31,7 +40,10 @@ const urlDatabase = {
 ///ROUTE HANDLERS///
 
 app.get("/hello", (req, res) => {
-  const templateVars = { greeting: 'Hello World!', username: req.cookies["username"] };
+  const templateVars = { 
+    greeting: 'Hello World!', 
+    user: users[req.cookies["user"]],
+  };
   res.render("hello_world", templateVars);
 });
 ///gets the urls in JSON format
@@ -42,8 +54,7 @@ app.get("/urls.json", (req, res) => {
 ////LOGIN///
 
 app.post('/logIn',(req, res)=>{
-
-  res.cookie("username", req.body.username);
+  // res.cookie("username", req.body.username);
   // console.log(req.cookies);
   res.redirect(`/urls`);
 })
@@ -51,7 +62,7 @@ app.post('/logIn',(req, res)=>{
 ///LOGOUT///
 app.post('/logOut',(req, res)=>{
   // res.cookie("username", req.body.username);
-  res.clearCookie('username');
+  res.clearCookie('user');
   res.redirect(`/urls`);
 })
 
@@ -60,16 +71,64 @@ app.get("/urls", (req, res) => {
   // res.render('/views/url_index.ejs');// BAD
   const templateVars = { 
     urls: urlDatabase,
-    username: req.cookies["username"],
-   };
+    user: users[req.cookies["user"]],
+  };
+  console.log(users);
   res.render("urls_index", templateVars);
 });
+
+////SignUp route////
+
+app.get("/signUp", (req, res)=>{
+  const templateVars = { 
+    urls: urlDatabase,
+    user: users[req.cookies["user"]],
+   };
+  
+  res.render('signup', templateVars)
+})
+
+app.post('/signUp',(req, res) => {
+ 
+  // if email or passowrd are empty strings return error 404
+  // res.header('status', 400)
+  
+  if(req.body.email === '' || req.body.password === ''){
+    res.status(400);
+    res.redirect('signUp');
+  }
+  ///seting up the userobject name by its email
+  let userMail = req.body.email;
+  ///veryfing that the user don't exist already.
+  if (emailExists(users, userMail)) {
+    res.sendStatus(400);
+    console.log("email already exists");
+
+    res.redirect('/urls');
+  } else {
+     ///generate random user ID
+    let userID = generateRandomString(5);
+    ///declaring the newuser as an instance of the User class. 
+    let newUser = new User(userID, req.body.email, req.body.password);
+
+    ///adding the newUser to the users database;
+    users[userID] = newUser;
+    
+    ///place newuser in a cookie, also.
+    res.cookie('user', newUser.id);
+    
+    console.log(req.cookies);
+    
+    res.redirect('/urls');
+  };
+});
+
 
 /////route to the 'input new url page'///
 app.get("/urls/new", (req, res) => {
   const templateVars = { 
     urls: urlDatabase,
-    username: req.cookies["username"],
+    user: users[req.cookies["user"]],
    };
   res.render("urls_new", templateVars);
 });
@@ -79,8 +138,9 @@ app.get("/urls/:shortURL", (req, res) => {
   
   /////here is important to know that you can set pass ANY expression to look for an element in an object.//
   const templateVars = { 
-    shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL],
-    username: req.cookies["username"]
+    shortURL: req.params.shortURL, 
+    longURL: urlDatabase[req.params.shortURL],
+    user: users[req.cookies["user"]],
   };
   res.render("urls_show", templateVars);
 });
@@ -112,17 +172,13 @@ app.post("/urls", (req, res) => {
 
   ///lets send the user to a new link with their newly generated shortURL
   const templateVars = { shortURL: [shortURL], longURL: req.body.longURL};
+
   res.redirect(`/urls/${shortURL}`);
   
 });
 
-app.post('/urls/:shortURL/:kljk',(req, res) => {
-  console.log(req.body)
-  urlDatabase[req.params.shortURL] = req.body.editedURL;
-  console.log(req.body)
-  res.redirect(`/urls`);
-})
 
+// 
 
 ///redirects to longURL////
 app.get("/u/:shortURL", (req, res) => {
@@ -138,10 +194,21 @@ app.get("/u/:shortURL", (req, res) => {
 // POST /URLS/:url/delete
 // post requests are used to CHANGE/DELETE/UPDATE/CREATE data 
 app.post( '/urls/:shortURL/delete', (req, res)=>{
+  console.log('hello');
   const urlToDelete = req.params.shortURL;
   delete urlDatabase[urlToDelete];
   res.redirect('/urls');
 });
+
+
+///phantom////
+app.post('/urls/:shortURL',(req, res) => {
+    console.log(req.body)
+    console.log('hello');
+    urlDatabase[req.params.shortURL] = req.body.editedURL;
+    console.log(req.body)
+    res.redirect(`/urls`);
+})
 
 
 app.listen(PORT, () => {
