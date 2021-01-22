@@ -58,19 +58,20 @@ app.get("/urls.json", (req, res) => {
 
 app.post('/logIn',(req, res)=>{
   //lookup for the email submited in the users object
-  
   if (emailExists(users, req.body.email )) {
     console.log('User recognized...' + req.body.email );
-    if (passwordMatching(users, req.body.email, req.body.password)) {
+    // if (passwordMatching(users, req.body.email, req.body.password)) { //oldie
+
+    let targetUser=fetchUser(users, req.body.email)
+  
+    if (bcrypt.compareSync( req.body.password, users[targetUser].password)) { //
       console.log('Password Accepted...')
       // console.log(fetchUser(users, req.body.email).id);
       let userObj = fetchUser(users, req.body.email);
-      console.log(userObj)
+      // console.log(userObj)
       let user_id = userObj;
       res.cookie('user_id', user_id)
-      console.log(req.cookies);
-    }else{
-      res.sendStatus(403);
+      // console.log(req.cookies);
     }
     res.redirect('/urls');
     return
