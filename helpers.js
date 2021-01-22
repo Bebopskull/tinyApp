@@ -27,8 +27,17 @@ const fetchUser = (userDatabase, email) => {
   }
   return {}
 }
+const getUserByEmail = (userDatabase, email) => {
+  for(let user in userDatabase){
+    if (userDatabase[user].email===email) {
+      // console.log(userDatabase[email)
+      return user;
+    } 
+  }
+  return undefined
+}
 
 
 
 
-module.exports = { emailExists, passwordMatching, fetchUser }
+module.exports = { emailExists, passwordMatching, fetchUser, getUserByEmail }
