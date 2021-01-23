@@ -59,32 +59,30 @@ app.get("/urls.json", (req, res) => {
 ////LOGIN///
 
 
-app.post('/logIn',(req, res)=>{
+app.post('/logIn',(req, res) => {
   //lookup for the email submited in the users object
   if (emailExists(users, req.body.email )) {
     console.log('User recognized...' + req.body.email );
     // if (passwordMatching(users, req.body.email, req.body.password)) { //oldie
-
-    let targetUser=fetchUser(users, req.body.email)
-  
+    let targetUser = fetchUser(users, req.body.email)
     if (bcrypt.compareSync( req.body.password, users[targetUser].password)) { //
       console.log('Password Accepted...')
       // console.log(fetchUser(users, req.body.email).id);
       let userObj = fetchUser(users, req.body.email);
       console.log(userObj)
-      req.session.user_id =  userObj;
-      
+      req.session.user_id = userObj;  
     }
     res.redirect('/urls');
     return
   }
-  res.sendStatus(403);
-  res.redirect(`/urls`);
+  // tried console.log: console.log(`Ups, you don't appear to be in our system. Please register before logging In`)
+  // tried setting status message: res.statusMessage = `Ups, you don't appear to be in our system. Please register before logging In`;
+  // throw new Error(`Ups, you don't appear to be in our system. Please register before logging In`)
+  res.sendStatus(404);
+  // res.redirect(`/urls`);
 })
 
 app.get('/login',(req, res)=>{
-
-  
 
   const templateVars = { 
     
@@ -92,7 +90,6 @@ app.get('/login',(req, res)=>{
     user: users[req.session.user_id]
    };
   
- 
   res.render(`login`, templateVars);
 })
 
@@ -106,8 +103,7 @@ app.post('/logOut',(req, res)=>{
 // gets the urls and display them in html format
 app.get("/urls", (req, res) => {
   
-  ///define a new filtered newdatabase/////
-  
+  ///define a new filtered newdatabase////
   const templateVars = { 
     urls: urlDatabase,
     user: users[req.session["user_id"]],
@@ -129,41 +125,46 @@ app.get("/signUp", (req, res)=>{
   res.render('signup', templateVars)
 })
 
+
 app.post('/signUp',(req, res) => {
  
   // if email or passowrd are empty strings return error 404
   // res.header('status', 400)
-  
-  if(req.body.email === '' || req.body.password === ''){
-    res.status(400);
-    res.redirect('signUp');
-  }
-  ///seting up the userobject name by its email
-  console.log(req.body)
-  let userMail = req.body.email;
-  ///veryfing that the user don't exist already.
-  if (emailExists(users, userMail)) {
-    res.sendStatus(400);
-    console.log("email already exists");
 
+  ///veryfing that the user don't exist already.
+  if (emailExists(users, req.body.email)) {
+    res.sendStatus(404);
+    throw new Error("email already exists");
     res.redirect('/urls');
   } else {
+    if(req.body.email === ''){
+      res.status(400);
+      res.redirect('signUp');
+    }else if(req.body.password === ''){
+      res.status(400);
+      res.redirect('signUp');
+    }else{
+
+      let userID = generateRandomString(5);
+  
+      ////lets hash the password
+      const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+  
+      ///declaring the newuser as an instance of the User class. 
+      let newUser = new User(userID, req.body.email, hashedPassword);//req.body.password
+  
+      ///adding the newUser to the users database;
+      users[userID] = newUser;
+      
+      ///place newuser in a cookie, also.
+      // res.cookie('user_id', newUser.id);
+      let userObj = fetchUser(users, req.body.email);
+      console.log(userObj)
+      req.session.user_id = userObj;
+
+      res.redirect('/urls');
+    }
      ///generate random user ID
-    let userID = generateRandomString(5);
-
-    ////lets hash the password
-    const hashedPassword = bcrypt.hashSync(req.body.password, 10);
-
-    ///declaring the newuser as an instance of the User class. 
-    let newUser = new User(userID, req.body.email, hashedPassword);//req.body.password
-
-    ///adding the newUser to the users database;
-    users[userID] = newUser;
-    
-    ///place newuser in a cookie, also.
-    // res.cookie('user_id', newUser.id);
-    
-    res.redirect('/urls');
   };
 });
 
