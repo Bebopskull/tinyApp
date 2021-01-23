@@ -67,9 +67,9 @@ app.post('/logIn',(req, res) => {
     let targetUser = fetchUser(users, req.body.email)
     if (bcrypt.compareSync( req.body.password, users[targetUser].password)) { //
       console.log('Password Accepted...')
-      // console.log(fetchUser(users, req.body.email).id);
+      
       let userObj = fetchUser(users, req.body.email);
-      console.log(userObj)
+      
       req.session.user_id = userObj;  
     }
     res.redirect('/urls');
@@ -110,7 +110,7 @@ app.get("/urls", (req, res) => {
     userID: req.session["user_id"],
     
   };
-  console.log(templateVars);
+  
   res.render("urls_index", templateVars);
 });
 
@@ -159,7 +159,7 @@ app.post('/signUp',(req, res) => {
       ///place newuser in a cookie, also.
       // res.cookie('user_id', newUser.id);
       let userObj = fetchUser(users, req.body.email);
-      console.log(userObj)
+      
       req.session.user_id = userObj;
 
       res.redirect('/urls');
@@ -200,7 +200,7 @@ app.get("/urls/:shortURL", (req, res) => {
 
 /////submit new url
 app.post("/urls", (req, res) => {
-  // console.log(req.body);  // Log the POST request body to the console
+ 
   ///generate random key
   let shortURL = generateRandomString(6);
   ////asign the random value to the req body.
@@ -218,8 +218,7 @@ app.post("/urls", (req, res) => {
 
 ///redirects to longURL////
 app.get("/u/:shortURL", (req, res) => {
-  // const longURL = ...
-  console.log(urlDatabase);
+ 
   const extURL = urlDatabase[req.params.shortURL].longURL;
   res.redirect(extURL);
 });
@@ -246,7 +245,7 @@ app.post('/urls/:shortURL',(req, res) => {
     let userPostID=req.session["user_id"];
     let sessObj= {longURL: editedURL, userID: userPostID};
     urlDatabase[req.params.shortURL] = sessObj;
-    console.log(' phantom for urldatabase',urlDatabase[req.params.shortURL]);
+ 
     res.redirect(`/urls`);
 })
 
