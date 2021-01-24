@@ -104,14 +104,17 @@ app.post('/logOut',(req, res)=>{
 app.get("/urls", (req, res) => {
   
   ///define a new filtered newdatabase////
+  let logedUser = users[req.session["user_id"]]
   const templateVars = { 
     urls: urlDatabase,
     user: users[req.session["user_id"]],
     userID: req.session["user_id"],
     
   };
-  
-  res.render("urls_index", templateVars);
+  if(logedUser ){
+    res.render("urls_index", templateVars);
+  }
+  res.render(`login`, templateVars)
 });
 
 ////SignUp route////
