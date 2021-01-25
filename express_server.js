@@ -29,7 +29,7 @@ app.use(cookieSession({
 }))
 // app.use(bcrypt());
 
-///generate random string
+///generate random string, found from StackOverflow at https://stackoverflow.com/a/1349426 then modified a bit.
 let generateRandomString = function makeid(length = 6) {
   let result           = '';
   let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -39,7 +39,7 @@ let generateRandomString = function makeid(length = 6) {
   }
   return result;
 }
-
+//////////////////////////
 
 
 const urlDatabase = {
@@ -57,7 +57,6 @@ app.get("/urls.json", (req, res) => {
 });
 
 ////LOGIN///
-
 
 app.post('/logIn',(req, res) => {
   //lookup for the email submited in the users object
@@ -104,14 +103,13 @@ app.post('/logOut',(req, res)=>{
 app.get("/urls", (req, res) => {
   
   ///define a new filtered newdatabase////
-  let logedUser = users[req.session["user_id"]]
+  let isLoged = users[req.session["user_id"]]
   const templateVars = { 
     urls: urlDatabase,
     user: users[req.session["user_id"]],
     userID: req.session["user_id"],
-    
   };
-  if(logedUser ){
+  if(isLoged ){
     res.render("urls_index", templateVars);
   }
   res.render(`login`, templateVars)
@@ -131,7 +129,7 @@ app.get("/signUp", (req, res)=>{
 
 app.post('/signUp',(req, res) => {
  
-  // if email or passowrd are empty strings return error 404
+  // if email or password are empty strings return error 404
   // res.header('status', 400)
 
   ///veryfing that the user don't exist already.
@@ -167,7 +165,6 @@ app.post('/signUp',(req, res) => {
 
       res.redirect('/urls');
     }
-     ///generate random user ID
   };
 });
 
@@ -180,6 +177,7 @@ app.get("/urls/new", (req, res) => {
     res.redirect('/login');
     return
   }
+
   const templateVars = { 
     urls: urlDatabase,
     user: users[req.session["user_id"]],
@@ -189,14 +187,28 @@ app.get("/urls/new", (req, res) => {
 
 ///shows a single shorthened_url and its url equivalent
 app.get("/urls/:shortURL", (req, res) => {
-  
-  /////here is important to know that you can set pass ANY expression to look for an element in an object.//
+
+  // add cond let isLogged = req.session.user_id;
+  let isLoged = req.session.user_id;
+  if(!isLoged){
+    res.redirect('/login');
+    return
+  }
+  /////here is important to know that you can set pass ANY expression to look for an element in an object.///
+
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL]["longURL"],
     user: users[req.session["user_id"]],
-  };
-  res.render("urls_show", templateVars);
+  };  
+  
+  ///only give acces to the :url page in the App if logged user === creator user 
+  if(urlDatabase[req.params.shortURL][`userID`] === req.params.user_id){
+    console.log('url object', urlDatabase[req.params.shortURL])
+    res.render("urls_show", templateVars);
+  }
+
+  res.redirect("/urls");
 });
 
 /////posts///// 
@@ -208,7 +220,7 @@ app.post("/urls", (req, res) => {
   let shortURL = generateRandomString(6);
   ////asign the random value to the req body.
   urlDatabase[shortURL] = {'longURL' : req.body.longURL, 'userID': req.session["user_id"]};
-
+  console.log('req.session:', req.session)
   ///lets send the user to a new link with their newly generated shortURL
   // const templateVars = { shortURL: [shortURL].longURL, longURL: req.body.longURL};
 
