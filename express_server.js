@@ -13,7 +13,7 @@ const { users } = require('./usersDb');
 const { User } = require('./usersDb')
 
 ////helper import
-const { emailExists, passwordMatching, fetchUser } = require('./helpers');
+const { emailExists, passwordMatching, fetchUser,getUserByEmail , generateRandomString } = require('./helpers');
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
@@ -27,18 +27,18 @@ app.use(cookieSession({
   // Cookie Options
   maxAge: 24 * 60 * 60 * 1000 // 24 hours
 }))
-// app.use(bcrypt());
+
 
 ///generate random string, found from StackOverflow at https://stackoverflow.com/a/1349426 then modified a bit.
-let generateRandomString = function makeid(length = 6) {
-  let result           = '';
-  let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let charactersLength = characters.length;
-  for ( let i = 0; i < length; i++ ) {
-     result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-}
+// let generateRandomString = function makeid(length = 6) {
+//   let result           = '';
+//   let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+//   let charactersLength = characters.length;
+//   for ( let i = 0; i < length; i++ ) {
+//      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+//   }
+//   return result;
+// }
 //////////////////////////
 
 
@@ -174,12 +174,13 @@ app.post('/signUp',(req, res) => {
       users[userID] = newUser;
       
       ///place newuser in a cookie, also.
-      // res.cookie('user_id', newUser.id);
+      
       let userObj = fetchUser(users, req.body.email);
       
       req.session.user_id = userObj;
 
       res.redirect('/urls');
+      return
     }
   };
 });
@@ -212,7 +213,7 @@ app.get("/urls/:shortURL", (req, res) => {
     return
   }
   /////here is important to know that you can set pass ANY expression to look for an element in an object.///
-  console.log(req.params.shortURL)
+  
   const shortUrl= req.params.shortURL;
   const templateVars = { 
     shortURL: req.params.shortURL, 
@@ -226,6 +227,7 @@ app.get("/urls/:shortURL", (req, res) => {
   if(urlDatabase[req.params.shortURL][`userID`] === req.session.user_id){
     // console.log('url object', urlDatabase[req.params.shortURL])
     res.render("urls_show", templateVars);
+    return
   }
 
   res.redirect("/urls");
