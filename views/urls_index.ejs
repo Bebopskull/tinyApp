@@ -29,18 +29,20 @@
 
         <% for(let url in urls) { %>
           <% if(urls[url].userID === userID){ %>
-            <!-- <% console.log(JSON.stringify(urls[url])); %> -->
+            
             <tr>
               <td> <%= url %> </td>
               <td> <a href="<%= urls[url].longURL %>"><%= urls[url].longURL %></a> </td>
               <td>
-                <a href= '/urls/<%= url %>'> 
-                  <button type="submit" class="btn btn-primary">Edit</button></a> 
+                <a href= '/urls/<%= url %>'>
+                  <form method="GET" action="/urls/<%= url %>">
+                  <button type="submit" class="btn btn-primary">Edit</button></a>
+                  </form> 
               </td>
               <td>
                 <form method="POST" action="/urls/<%= url %>/delete">
                 <button type="submit" class="btn btn-primary">DELETE</button>
-              </form>
+                </form>
               </td>
             </tr>
         

@@ -8,4 +8,3 @@ let generateRandomString = function makeid(length = 6) {
   return result;
 }
 
-console.log(generateRandomString(6));

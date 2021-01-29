@@ -42,14 +42,23 @@ let generateRandomString = function makeid(length = 6) {
 //////////////////////////
 
 
-const urlDatabase = {
+let urlDatabase = {
   "b2xVn2": {longURL: "http://www.lighthouselabs.ca",userID: "userRandomID"},
   "9sm5xK": {longURL: "http://www.google.com",userID: "user2RandomID"}
 };
 
 
 ///ROUTE HANDLERS///
+app.get('/',(req, res)=>{
 
+  const templateVars = { 
+    
+    urls: urlDatabase,
+    user: users[req.session.user_id]
+   };
+  console.log('userID', req.session.user_id)
+  res.render(`logIn`, templateVars);
+})
 
 ///gets the urls in JSON format
 app.get("/urls.json", (req, res) => {
@@ -103,16 +112,16 @@ app.post('/logOut',(req, res)=>{
 app.get("/urls", (req, res) => {
   
   ///define a new filtered newdatabase////
-  let isLoged = users[req.session["user_id"]]
+  const isLoged = users[req.session["user_id"]]
   const templateVars = { 
     urls: urlDatabase,
     user: users[req.session["user_id"]],
     userID: req.session["user_id"],
   };
-  if(isLoged ){
-    res.render("urls_index", templateVars);
-  }
-  res.render(`login`, templateVars)
+  // if(isLoged ){
+  //   res.render("urls_index", templateVars);
+  // }
+  res.render("urls_index", templateVars)
 });
 
 ////SignUp route////
@@ -146,13 +155,13 @@ app.post('/signUp',(req, res) => {
       res.redirect('signUp');
     }else{
 
-      let userID = generateRandomString(5);
+      const userID = generateRandomString(5);
   
       ////lets hash the password
       const hashedPassword = bcrypt.hashSync(req.body.password, 10);
   
       ///declaring the newuser as an instance of the User class. 
-      let newUser = new User(userID, req.body.email, hashedPassword);//req.body.password
+      const newUser = new User(userID, req.body.email, hashedPassword);//req.body.password
   
       ///adding the newUser to the users database;
       users[userID] = newUser;
@@ -174,7 +183,7 @@ app.get("/urls/new", (req, res) => {
   
   let isLogged = req.session.user_id;
   if(!isLogged){
-    res.redirect('/login');
+    res.redirect('/urls');
     return
   }
 
@@ -184,6 +193,7 @@ app.get("/urls/new", (req, res) => {
    };
   res.render("urls_new", templateVars);
 });
+
 
 ///shows a single shorthened_url and its url equivalent
 app.get("/urls/:shortURL", (req, res) => {
@@ -195,16 +205,19 @@ app.get("/urls/:shortURL", (req, res) => {
     return
   }
   /////here is important to know that you can set pass ANY expression to look for an element in an object.///
-
+  console.log(req.params.shortURL)
+  const shortUrl= req.params.shortURL;
   const templateVars = { 
     shortURL: req.params.shortURL, 
-    longURL: urlDatabase[req.params.shortURL]["longURL"],
+    longURL: urlDatabase[shortUrl]["longURL"],
     user: users[req.session["user_id"]],
   };  
   
+
+  // console.log('urlDb Id',urlDatabase[req.params.shortURL])
   ///only give acces to the :url page in the App if logged user === creator user 
-  if(urlDatabase[req.params.shortURL][`userID`] === req.params.user_id){
-    console.log('url object', urlDatabase[req.params.shortURL])
+  if(urlDatabase[req.params.shortURL][`userID`] === req.session.user_id){
+    // console.log('url object', urlDatabase[req.params.shortURL])
     res.render("urls_show", templateVars);
   }
 
@@ -217,12 +230,11 @@ app.get("/urls/:shortURL", (req, res) => {
 app.post("/urls", (req, res) => {
  
   ///generate random key
-  let shortURL = generateRandomString(6);
+  const shortURL = generateRandomString(6);
   ////asign the random value to the req body.
   urlDatabase[shortURL] = {'longURL' : req.body.longURL, 'userID': req.session["user_id"]};
-  console.log('req.session:', req.session)
+  // console.log('req.session:', req.session)
   ///lets send the user to a new link with their newly generated shortURL
-  // const templateVars = { shortURL: [shortURL].longURL, longURL: req.body.longURL};
 
   res.redirect(`/urls/${shortURL}`);
   
@@ -256,8 +268,8 @@ app.post( '/urls/:shortURL/delete', (req, res)=>{
 
 ///phantom for urlDatabase////
 app.post('/urls/:shortURL',(req, res) => {
-    let editedURL=req.body.editedURL;
-    let userPostID=req.session["user_id"];
+    const editedURL=req.body.editedURL;
+    const userPostID=req.session["user_id"];
     let sessObj= {longURL: editedURL, userID: userPostID};
     urlDatabase[req.params.shortURL] = sessObj;
  
