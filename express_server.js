@@ -51,14 +51,21 @@ let urlDatabase = {
 ///ROUTE HANDLERS///
 app.get('/',(req, res)=>{
 
+  let isLogged = req.session.user_id;
+  if(isLogged){
+    res.redirect('/urls');
+    return
+  }
+
   const templateVars = { 
     
     urls: urlDatabase,
     user: users[req.session.user_id]
    };
-  console.log('userID', req.session.user_id)
+
   res.render(`logIn`, templateVars);
 })
+
 
 ///gets the urls in JSON format
 app.get("/urls.json", (req, res) => {
